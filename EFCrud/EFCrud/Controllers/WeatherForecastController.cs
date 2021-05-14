@@ -11,29 +11,38 @@ namespace EFCrud.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly MyDBContext dbContext;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, MyDBContext context)
         {
             _logger = logger;
+            this.dbContext = context;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public List<Employee> Get()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+            return dbContext.Employees.ToList();
+        }
+
+        [HttpPost]
+        public bool Post( [FromBody] Employee newEmployee)
+        {
+            var newEmp = new Employee();
+            newEmp.FirstName = newEmployee.FirstName;
+            dbContext.Employees.Add(newEmp);
+            dbContext.SaveChanges();
+            return true;
+        }
+
+        [HttpDelete]
+        public bool Delete([FromBody] int deleteId)
+        {
+            var foundEmployee = dbContext.Employees.Find(deleteId);
+            dbContext.Employees.Remove(foundEmployee);
+            dbContext.SaveChanges();
+            return true;
         }
     }
 }
